@@ -1,5 +1,5 @@
 {
-  "name": "assignment1web",
+  "name": "assignment2web",
   "version": "1.0.0",
   "description": "Express TypeScript application with Node.js v24",
   "main": "dist/server.js",
