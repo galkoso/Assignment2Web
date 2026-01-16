@@ -2,6 +2,8 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import postRouter from '../post.router';
+import { Post } from '../post.model';
+import { jest } from '@jest/globals';
 import {
     mockPostData,
     mockPostDataWithoutPublishDate,
@@ -29,6 +31,10 @@ describe('POST /api/posts - Add a new post', () => {
 
   beforeEach(async () => {
     await clearTestDb();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should create a new post successfully', async () => {
@@ -89,6 +95,42 @@ describe('POST /api/posts - Add a new post', () => {
 
     expect(response.body.data).toHaveProperty('publishDate');
     expect(new Date(response.body.data.publishDate)).toBeInstanceOf(Date);
+  });
+
+  it('should fail when userId is invalid', async () => {
+    const postData = { ...mockPostData, userId: 'not-an-objectid' };
+
+    const response = await request(app)
+      .post('/api/posts')
+      .send(postData)
+      .expect(StatusCodes.BAD_REQUEST);
+
+    expect(response.body).toHaveProperty('error', 'Invalid userId');
+  });
+
+  it('should fail when user does not exist', async () => {
+    const postData = { ...mockPostData, userId: '507f1f77bcf86cd799439011' };
+
+    const response = await request(app)
+      .post('/api/posts')
+      .send(postData)
+      .expect(StatusCodes.NOT_FOUND);
+
+    expect(response.body).toHaveProperty('error', 'User not found');
+  });
+
+  it('should return 500 when Post.create throws (catch path)', async () => {
+    const user = await User.create(mockUser);
+    jest.spyOn(Post, 'create').mockRejectedValueOnce(new Error('boom'));
+
+    const postData = { ...mockPostData, userId: user._id.toString() };
+
+    const response = await request(app)
+      .post('/api/posts')
+      .send(postData)
+      .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+
+    expect(response.body).toHaveProperty('error', 'Failed to create post');
   });
 });
 

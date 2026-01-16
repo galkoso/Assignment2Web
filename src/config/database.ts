@@ -1,14 +1,30 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI: string = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web';
+export const DEFAULT_MONGODB_URI = 'mongodb://localhost:27017/assignment1web';
 
-export const connectDB = async (): Promise<void> => {
+type ConnectDbDeps = {
+  uri?: string;
+  mongooseConnect?: (uri: string) => Promise<unknown>;
+  log?: (...args: unknown[]) => void;
+  errorLog?: (...args: unknown[]) => void;
+  exit?: (code: number) => never;
+};
+
+export const connectDB = async (deps: ConnectDbDeps = {}): Promise<void> => {
+  const {
+    uri = process.env.MONGODB_URI || DEFAULT_MONGODB_URI,
+    mongooseConnect = mongoose.connect.bind(mongoose),
+    log = console.log,
+    errorLog = console.error,
+    exit = process.exit,
+  } = deps;
+
   try {
-    await mongoose.connect(MONGODB_URI);
-    console.log(`MongoDB Connected`);
+    await mongooseConnect(uri);
+    log(`MongoDB Connected`);
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
+    errorLog('MongoDB connection error:', error);
+    exit(1);
   }
 };
 

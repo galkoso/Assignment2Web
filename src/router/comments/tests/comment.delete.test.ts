@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
+import { jest } from '@jest/globals';
 import { Post } from '../../posts/post.model';
 import { User } from '../../users/user.model';
 import {
@@ -28,6 +29,10 @@ describe('DELETE /api/comments/:id - Delete a comment', () => {
     afterAll(async () => await disconnectTestDb());
 
     beforeEach(async () => await clearTestDb());
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     it('should delete a comment successfully', async () => {
         const user = await User.create(mockUser);
@@ -81,5 +86,13 @@ describe('DELETE /api/comments/:id - Delete a comment', () => {
         const remainingComment = await Comment.findById(comment2._id);
         expect(remainingComment).not.toBeNull();
         expect(remainingComment?.content).toBe('Comment 2');
+    });
+
+    it('should return 500 for invalid ID format (catch path)', async () => {
+        const response = await request(app)
+            .delete('/api/comments/invalid-id')
+            .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+
+        expect(response.body).toHaveProperty('error', 'Failed to delete comment');
     });
 });

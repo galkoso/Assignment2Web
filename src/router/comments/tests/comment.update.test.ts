@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
+import { jest } from '@jest/globals';
 import { Post } from '../../posts/post.model';
 import { User } from '../../users/user.model';
 import {
@@ -29,6 +30,10 @@ describe('PUT /api/comments/:id - Update a comment', () => {
     afterAll(async () => await disconnectTestDb());
 
     beforeEach(async () => await clearTestDb());
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     it('should update a comment successfully', async () => {
         const user = await User.create(mockUser);
@@ -94,5 +99,14 @@ describe('PUT /api/comments/:id - Update a comment', () => {
             .expect(StatusCodes.OK);
 
         expect(response.body.data.content).toBe('Updated content with spaces');
+    });
+
+    it('should return 500 for invalid ID format (catch path)', async () => {
+        const response = await request(app)
+            .put('/api/comments/invalid-id')
+            .send(mockCommentUpdated)
+            .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+
+        expect(response.body).toHaveProperty('error', 'Failed to update comment');
     });
 });

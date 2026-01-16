@@ -26,5 +26,10 @@ describe('GET /api/users/:userId - Get user by id', () => {
         const res = await request(app).get('/api/users/507f1f77bcf86cd799439011').expect(StatusCodes.NOT_FOUND);
         expect(res.body).toHaveProperty('error', 'User not found');
     });
+
+    it('should return 400 for invalid userId format', async () => {
+        const res = await request(app).get('/api/users/invalid-id').expect(StatusCodes.BAD_REQUEST);
+        expect(res.body).toHaveProperty('error', 'Invalid userId');
+    });
 });
 

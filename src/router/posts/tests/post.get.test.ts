@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import postRouter from '../post.router';
 import { Post } from '../post.model';
+import { jest } from '@jest/globals';
 import {
     mockPostMultiple,
     mockPostOlder,
@@ -29,6 +30,10 @@ describe('GET /api/posts - Get all posts', () => {
 
   beforeEach(async () => {
     await clearTestDb();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should return empty array when no posts exist', async () => {
@@ -81,6 +86,27 @@ describe('GET /api/posts - Get all posts', () => {
     expect(post).toHaveProperty('userId');
     expect(post).toHaveProperty('publishDate');
     expect(post).toHaveProperty('_id');
+  });
+
+  it('should return 400 when userId query param is invalid', async () => {
+    const response = await request(app)
+      .get('/api/posts?userId=invalid-id')
+      .expect(StatusCodes.BAD_REQUEST);
+
+    expect(response.body).toHaveProperty('error', 'Invalid userId');
+  });
+
+  it('should return 500 when query fails (catch path)', async () => {
+    const sort = jest.fn<(arg: unknown) => Promise<unknown>>().mockRejectedValue(new Error('boom'));
+    jest.spyOn(Post, 'find').mockReturnValueOnce({
+      sort,
+    } as any);
+
+    const response = await request(app)
+      .get('/api/posts')
+      .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+
+    expect(response.body).toHaveProperty('error', 'Failed to fetch posts');
   });
 });
 

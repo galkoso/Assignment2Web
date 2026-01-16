@@ -30,5 +30,17 @@ describe('DELETE /api/users/:userId - Delete user', () => {
         const remaining = await User.countDocuments();
         expect(remaining).toBe(0);
     });
+
+    it('should return 400 for invalid userId format', async () => {
+        const res = await request(app).delete('/api/users/invalid-id').expect(StatusCodes.BAD_REQUEST);
+        expect(res.body).toHaveProperty('error', 'Invalid userId');
+    });
+
+    it('should return 404 when user does not exist', async () => {
+        const res = await request(app)
+            .delete('/api/users/507f1f77bcf86cd799439011')
+            .expect(StatusCodes.NOT_FOUND);
+        expect(res.body).toHaveProperty('error', 'User not found');
+    });
 });
 

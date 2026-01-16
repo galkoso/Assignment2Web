@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
+import { jest } from '@jest/globals';
 import { Post } from '../../posts/post.model';
 import { User } from '../../users/user.model';
 import {
@@ -29,6 +30,10 @@ describe('GET /api/comments/:id - Get a comment by ID', () => {
 
     beforeEach(async () => {
         await clearTestDb();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should return a comment by ID', async () => {
@@ -59,8 +64,10 @@ describe('GET /api/comments/:id - Get a comment by ID', () => {
     });
 
     it('should return 404 for invalid ID format', async () => {
-        await request(app)
+        const response = await request(app)
             .get('/api/comments/invalid-id')
             .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+
+        expect(response.body).toHaveProperty('error', 'Failed to fetch comment');
     });
 });

@@ -123,4 +123,28 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     expect(response.body.updatedPost._id.toString()).toBe(originalId);
   });
+
+  it('should return 400 when userId is invalid', async () => {
+    const user = await User.create(mockUser);
+    const createdPost = await Post.create({ ...mockPostOriginal, userId: user._id });
+
+    const response = await request(app)
+      .put(`/api/posts/${createdPost._id.toString()}`)
+      .send({ ...mockPostUpdated, userId: 'invalid-user-id' })
+      .expect(StatusCodes.BAD_REQUEST);
+
+    expect(response.body).toHaveProperty('error', 'Invalid userId');
+  });
+
+  it('should return 404 when user does not exist', async () => {
+    const user = await User.create(mockUser);
+    const createdPost = await Post.create({ ...mockPostOriginal, userId: user._id });
+
+    const response = await request(app)
+      .put(`/api/posts/${createdPost._id.toString()}`)
+      .send({ ...mockPostUpdated, userId: '507f1f77bcf86cd799439011' })
+      .expect(StatusCodes.NOT_FOUND);
+
+    expect(response.body).toHaveProperty('error', 'User not found');
+  });
 });

@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
+import { jest } from '@jest/globals';
 import { Post } from '../../posts/post.model';
 import { User } from '../../users/user.model';
 import {
@@ -34,6 +35,10 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
 
     beforeEach(async () => {
         await clearTestDb();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should return empty array when no comments exist for post', async () => {
@@ -125,5 +130,21 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
 
         expect(response.body.data.length).toBe(1);
         expect(response.body.data[0].content).toBe('Comment for post 1');
+    });
+
+    it('should return 500 when comment query fails (catch path)', async () => {
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
+
+        const sort = jest.fn<(arg: unknown) => Promise<unknown>>().mockRejectedValue(new Error('boom'));
+        jest.spyOn(Comment, 'find').mockReturnValueOnce({
+            sort,
+        } as any);
+
+        const response = await request(app)
+            .get(`/api/comments/post/${post._id}`)
+            .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+
+        expect(response.body).toHaveProperty('error', 'Failed to fetch comments');
     });
 });
