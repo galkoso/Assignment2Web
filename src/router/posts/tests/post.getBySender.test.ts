@@ -12,7 +12,7 @@ import {
     mockPostMultiple,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 import { User } from '../../users/user.model';
 
 describe('GET /api/posts?userId=<userId> - Get posts by userId', () => {
@@ -44,6 +44,7 @@ describe('GET /api/posts?userId=<userId> - Get posts by userId', () => {
 
     const response = await request(app)
       .get(`/api/posts?userId=${user1._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body).toHaveProperty('data');
@@ -61,6 +62,7 @@ describe('GET /api/posts?userId=<userId> - Get posts by userId', () => {
 
     const response = await request(app)
       .get(`/api/posts?userId=${user2._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body).toHaveProperty('data');
@@ -73,6 +75,7 @@ describe('GET /api/posts?userId=<userId> - Get posts by userId', () => {
 
     const response = await request(app)
       .get(`/api/posts?userId=${user._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body.data.length).toBe(2);
@@ -86,6 +89,7 @@ describe('GET /api/posts?userId=<userId> - Get posts by userId', () => {
 
     const response = await request(app)
       .get('/api/posts')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body.data.length).toBe(2);
@@ -94,6 +98,7 @@ describe('GET /api/posts?userId=<userId> - Get posts by userId', () => {
   it('should return 400 for invalid userId query param', async () => {
     await request(app)
       .get('/api/posts?userId=not-an-objectid')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.BAD_REQUEST);
   });
 });

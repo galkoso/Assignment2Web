@@ -12,7 +12,7 @@ import {
     mockInvalidCommentId,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 
 describe('GET /api/comments/:id - Get a comment by ID', () => {
     let app: Express;
@@ -49,6 +49,7 @@ describe('GET /api/comments/:id - Get a comment by ID', () => {
 
         const response = await request(app)
             .get(`/api/comments/${comment._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.OK);
 
         expect(response.body).toHaveProperty('data');
@@ -60,12 +61,14 @@ describe('GET /api/comments/:id - Get a comment by ID', () => {
     it('should return 404 when comment does not exist', async () => {
         await request(app)
             .get(`/api/comments/${mockInvalidCommentId}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.NOT_FOUND);
     });
 
     it('should return 404 for invalid ID format', async () => {
         const response = await request(app)
             .get('/api/comments/invalid-id')
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 
         expect(response.body).toHaveProperty('error', 'Failed to fetch comment');

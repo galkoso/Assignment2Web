@@ -17,7 +17,7 @@ import {
     mockInvalidPostId,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 
 describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
     let app: Express;
@@ -47,6 +47,7 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
 
         const response = await request(app)
             .get(`/api/comments/post/${post._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.OK);
 
         expect(response.body).toHaveProperty('data');
@@ -68,6 +69,7 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
 
         const response = await request(app)
             .get(`/api/comments/post/${post._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.OK);
 
         expect(response.body).toHaveProperty('data');
@@ -94,6 +96,7 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
 
         const response = await request(app)
             .get(`/api/comments/post/${post._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.OK);
 
         expect(response.body.data.length).toBe(2);
@@ -104,6 +107,7 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
     it('should return 404 when post does not exist', async () => {
         await request(app)
             .get(`/api/comments/post/${mockInvalidPostId}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.NOT_FOUND);
     });
 
@@ -126,6 +130,7 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
 
         const response = await request(app)
             .get(`/api/comments/post/${post1._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.OK);
 
         expect(response.body.data.length).toBe(1);
@@ -143,6 +148,7 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
 
         const response = await request(app)
             .get(`/api/comments/post/${post._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 
         expect(response.body).toHaveProperty('error', 'Failed to fetch comments');

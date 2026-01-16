@@ -2,7 +2,7 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import usersRouter from '../user.router';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 import { User } from '../user.model';
 import { mockUser } from '../../mocks';
 import { jest } from '@jest/globals';
@@ -31,7 +31,7 @@ describe('GET /api/users - getAllUsers', () => {
 
     it('should return all users', async () => {
         await User.create(mockUser);
-        const res = await request(app).get('/api/users').expect(StatusCodes.OK);
+        const res = await request(app).get('/api/users').set('Authorization', getAuthToken()).expect(StatusCodes.OK);
         expect(Array.isArray(res.body.data)).toBe(true);
         expect(res.body.data.length).toBe(1);
     });
@@ -42,7 +42,7 @@ describe('GET /api/users - getAllUsers', () => {
             .spyOn(User, 'find')
             .mockImplementationOnce(() => ({ sort } as unknown as ReturnType<typeof User.find>));
 
-        const res = await request(app).get('/api/users').expect(StatusCodes.INTERNAL_SERVER_ERROR);
+        const res = await request(app).get('/api/users').set('Authorization', getAuthToken()).expect(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(res.body).toHaveProperty('error', 'Failed to fetch users');
     });
 });

@@ -8,7 +8,7 @@ import {
     mockPostComplete,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 import { User } from '../../users/user.model';
 
 describe('GET /api/posts/:postId - Get a post by ID', () => {
@@ -35,6 +35,7 @@ describe('GET /api/posts/:postId - Get a post by ID', () => {
 
     const response = await request(app)
       .get(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body).toHaveProperty('post');
@@ -49,6 +50,7 @@ describe('GET /api/posts/:postId - Get a post by ID', () => {
 
     const response = await request(app)
       .get(`/api/posts/${fakeId.toString()}`)
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.NOT_FOUND);
 
     expect(response.body).toHaveProperty('error', 'Post not found');
@@ -57,6 +59,7 @@ describe('GET /api/posts/:postId - Get a post by ID', () => {
   it('should return 500 when invalid ID format is provided', async () => {
     const response = await request(app)
       .get('/api/posts/invalid-id')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 
     expect(response.body).toHaveProperty('error', 'Failed to fetch post');
@@ -68,6 +71,7 @@ describe('GET /api/posts/:postId - Get a post by ID', () => {
 
     const response = await request(app)
       .get(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     const post = response.body.post;
