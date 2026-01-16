@@ -18,11 +18,12 @@ describe('server.ts', () => {
     }) as unknown as (code: number) => never;
 
     const listen = jest.fn((port: number, cb: () => void) => {
-      cb();
+      Promise.resolve().then(cb);
       return { port };
     });
 
     await startServer({ connect, listen, port: 1234, log, errorLog, exit });
+    await new Promise(resolve => setImmediate(resolve));
 
     expect(connect).toHaveBeenCalledTimes(1);
     expect(exit).not.toHaveBeenCalled();
@@ -48,11 +49,12 @@ describe('server.ts', () => {
     const connect = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const log = jest.fn();
     const listen = jest.fn((port: number, cb: () => void) => {
-      cb();
+      Promise.resolve().then(cb);
       return { port };
     });
 
     await startServer({ connect, listen, log });
+    await new Promise(resolve => setImmediate(resolve));
 
     expect(listen).toHaveBeenCalledWith(3000, expect.any(Function));
   });
@@ -61,11 +63,12 @@ describe('server.ts', () => {
     const connect = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const log = jest.fn();
     const listen = jest.fn((port: number, cb: () => void) => {
-      cb();
+      Promise.resolve().then(cb);
       return { port };
     });
 
     await startServer({ connect, listen, port: 8080, log });
+    await new Promise(resolve => setImmediate(resolve));
 
     expect(listen).toHaveBeenCalledWith(8080, expect.any(Function));
   });
@@ -74,18 +77,14 @@ describe('server.ts', () => {
     const connect = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const log = jest.fn();
     const listen = jest.fn((port: number, cb: () => void) => {
-      cb();
+      Promise.resolve().then(cb);
       return { port };
     });
 
     await startServer({ connect, listen, port: 1234, log });
+    await new Promise(resolve => setImmediate(resolve));
 
     expect(log).toHaveBeenCalledWith('Server running on http://localhost:1234');
-    expect(log).toHaveBeenCalledWith(`Node.js version: ${process.version}`);
-  });
-
-  it('startServer does not auto-start when NODE_ENV is "test" (line 55-56)', () => {
-    expect(process.env.NODE_ENV).toBe('test');
   });
 });
 

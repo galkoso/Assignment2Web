@@ -44,7 +44,7 @@ describe('connectDB (src/config/database.ts)', () => {
     expect(exit).toHaveBeenCalledWith(1);
   });
 
-  it('uses default deps parameter when called without arguments (line 13)', async () => {
+  it('uses default deps parameter when called without arguments', async () => {
     delete process.env.MONGODB_URI;
     
     const originalConnect = mongoose.connect;
@@ -58,7 +58,7 @@ describe('connectDB (src/config/database.ts)', () => {
     mongoose.connect = originalConnect;
   });
 
-  it('uses default mongooseConnect when not provided in deps (line 16)', async () => {
+  it('uses default mongooseConnect when not provided in deps', async () => {
     delete process.env.MONGODB_URI;
     const log = jest.fn();
     
