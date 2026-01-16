@@ -47,17 +47,14 @@ describe('connectDB (src/config/database.ts)', () => {
   it('uses default deps parameter when called without arguments (line 13)', async () => {
     delete process.env.MONGODB_URI;
     
-    // Mock mongoose.connect to avoid actual connection
     const originalConnect = mongoose.connect;
     const mockConnect = jest.fn<(uri: string) => Promise<unknown>>().mockResolvedValue(undefined);
     (mongoose.connect as any) = mockConnect;
 
-    // Call connectDB() with NO arguments to test default parameter deps = {} on line 13
     await connectDB();
 
     expect(mockConnect).toHaveBeenCalledWith(DEFAULT_MONGODB_URI);
 
-    // Restore original
     mongoose.connect = originalConnect;
   });
 
@@ -65,18 +62,15 @@ describe('connectDB (src/config/database.ts)', () => {
     delete process.env.MONGODB_URI;
     const log = jest.fn();
     
-    // Mock mongoose.connect to test the default value assignment
     const originalConnect = mongoose.connect.bind(mongoose);
     const mockConnect = jest.fn<(uri: string) => Promise<unknown>>().mockResolvedValue(undefined);
     (mongoose.connect as any) = mockConnect;
 
-    // Call with empty deps to trigger default parameter, and without mongooseConnect to trigger line 16
     await connectDB({ log });
 
     expect(mockConnect).toHaveBeenCalledWith(DEFAULT_MONGODB_URI);
     expect(log).toHaveBeenCalledWith('MongoDB Connected');
 
-    // Restore original
     mongoose.connect = originalConnect;
   });
 
