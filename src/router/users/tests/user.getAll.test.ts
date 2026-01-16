@@ -37,9 +37,10 @@ describe('GET /api/users - getAllUsers', () => {
     });
 
     it('should return 500 when query fails (catch path)', async () => {
-        jest.spyOn(User, 'find').mockReturnValueOnce({
-            sort: jest.fn(() => Promise.reject(new Error('boom'))),
-        } as any);
+        const sort = jest.fn<(arg: unknown) => Promise<unknown>>().mockRejectedValue(new Error('boom'));
+        jest
+            .spyOn(User, 'find')
+            .mockImplementationOnce(() => ({ sort } as unknown as ReturnType<typeof User.find>));
 
         const res = await request(app).get('/api/users').expect(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(res.body).toHaveProperty('error', 'Failed to fetch users');
