@@ -1,12 +1,30 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import mongoose from 'mongoose';
 import { Post } from './post.model';
 import { IPost } from './post.schema';
+import { User } from '../users/user.model';
 
 export const addPost = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { title, content, author, publishDate } = req.body;
-        const newPost: IPost = { title, content, author, publishDate };
+        const { title, content, userId, publishDate } = req.body;
+
+        if (!title || !content || !userId) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'title, content, and userId are required' });
+            return;
+        }
+        if (!mongoose.Types.ObjectId.isValid(String(userId))) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid userId' });
+            return;
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+            return;
+        }
+
+        const newPost: IPost = { title, content, userId, publishDate };
         const post = await Post.create(newPost);
 
         res.status(StatusCodes.CREATED).json({ message: 'Post created successfully', data: post });
@@ -17,8 +35,12 @@ export const addPost = async (req: Request, res: Response): Promise<void> => {
 
 export const getAllPosts = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { sender } = req.query;
-        const filter = sender ? { author: sender } : {};
+        const { userId } = req.query;
+        if (userId && !mongoose.Types.ObjectId.isValid(String(userId))) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid userId' });
+            return;
+        }
+        const filter = userId ? { userId } : {};
         const posts = await Post.find(filter).sort({ publishDate: -1 });
 
         res.status(StatusCodes.OK).json({ data: posts });
@@ -46,16 +68,26 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
 export const updatePost = async (req: Request, res: Response): Promise<void> => {
     try {
         const { postId } = req.params;
-        const { title, content, author, publishDate } = req.body;
+        const { title, content, userId, publishDate } = req.body;
         
-        if (!title || !content || !author || !publishDate) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to update post' });
+        if (!title || !content || !userId || !publishDate) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'title, content, userId, and publishDate are required' });
+            return;
+        }
+        if (!mongoose.Types.ObjectId.isValid(String(userId))) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid userId' });
+            return;
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
             return;
         }
         
         const updatedPost = await Post.findByIdAndUpdate(
             postId,
-            { title, content, author, publishDate },
+            { title, content, userId, publishDate },
             { new: true, runValidators: true }
         );
 

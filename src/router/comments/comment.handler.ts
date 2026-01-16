@@ -1,14 +1,24 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import mongoose from 'mongoose';
 import { Comment, IComment } from './comment.model';
 import { Post } from '../posts/post.model';
+import { User } from '../users/user.model';
 
 export const createComment = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { owner, postId, content } = req.body;
+        const { userId, postId, content } = req.body;
 
-        if (!owner || !postId || !content) {
-            res.status(StatusCodes.BAD_REQUEST).json({ error: 'Owner, postId, and content are required' });
+        if (!userId || !postId || !content) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'userId, postId, and content are required' });
+            return;
+        }
+        if (!mongoose.Types.ObjectId.isValid(String(userId))) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid userId' });
+            return;
+        }
+        if (!mongoose.Types.ObjectId.isValid(String(postId))) {
+            res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid postId' });
             return;
         }
 
@@ -18,8 +28,14 @@ export const createComment = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+            return;
+        }
+
         const newComment: IComment = {
-            owner: owner.trim(),
+            userId: userId,
             postId: postId,
             content: content.trim()
         };

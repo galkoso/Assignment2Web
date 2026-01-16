@@ -1,6 +1,5 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import postRouter from '../post.router';
 import { Post } from '../post.model';
@@ -10,53 +9,58 @@ import {
     mockPostAnotherByJohn,
     mockPostOlderByJohn,
     mockPostNewerByJohn,
-    mockPostWithSpaces,
-    mockPostMultiple
+    mockPostMultiple,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { User } from '../../users/user.model';
 
-describe('GET /api/posts?sender=<sender_id> - Get posts by sender', () => {
+describe('GET /api/posts?userId=<userId> - Get posts by userId', () => {
   let app: Express;
-  const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
   beforeAll(async () => {
-    await mongoose.connect(testDbUri);
+    await connectTestDb();
     app = express();
     app.use(express.json());
     app.use('/api/posts', postRouter);
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    await disconnectTestDb();
   });
 
   beforeEach(async () => {
-    await Post.deleteMany({});
+    await clearTestDb();
   });
 
-  it('should return only posts from the specified sender', async () => {
+  it('should return only posts from the specified user', async () => {
+    const user1 = await User.create(mockUser);
+    const user2 = await User.create({ ...mockUser, username: 'testuser2', email: 'test2@example.com' });
     await Post.insertMany([
-      mockPostByJohn,
-      mockPostByJane,
-      mockPostAnotherByJohn
+      { ...mockPostByJohn, userId: user1._id },
+      { ...mockPostByJane, userId: user2._id },
+      { ...mockPostAnotherByJohn, userId: user1._id }
     ]);
 
     const response = await request(app)
-      .get('/api/posts?sender=John Doe')
+      .get(`/api/posts?userId=${user1._id.toString()}`)
       .expect(StatusCodes.OK);
 
     expect(response.body).toHaveProperty('data');
     expect(Array.isArray(response.body.data)).toBe(true);
     expect(response.body.data.length).toBe(2);
     response.body.data.forEach((post: any) => {
-      expect(post.author).toBe('John Doe');
+      expect(post.userId).toBe(user1._id.toString());
     });
   });
 
-  it('should return empty array when sender has no posts', async () => {
-    await Post.insertMany([mockPostByJohn]);
+  it('should return empty array when user has no posts', async () => {
+    const user1 = await User.create(mockUser);
+    const user2 = await User.create({ ...mockUser, username: 'testuser2', email: 'test2@example.com' });
+    await Post.insertMany([{ ...mockPostByJohn, userId: user1._id }]);
 
     const response = await request(app)
-      .get('/api/posts?sender=NonExistent Author')
+      .get(`/api/posts?userId=${user2._id.toString()}`)
       .expect(StatusCodes.OK);
 
     expect(response.body).toHaveProperty('data');
@@ -64,13 +68,11 @@ describe('GET /api/posts?sender=<sender_id> - Get posts by sender', () => {
   });
 
   it('should return posts sorted by publishDate descending', async () => {
-    await Post.insertMany([
-      mockPostOlderByJohn,
-      mockPostNewerByJohn
-    ]);
+    const user = await User.create(mockUser);
+    await Post.insertMany([{ ...mockPostOlderByJohn, userId: user._id }, { ...mockPostNewerByJohn, userId: user._id }]);
 
     const response = await request(app)
-      .get('/api/posts?sender=John Doe')
+      .get(`/api/posts?userId=${user._id.toString()}`)
       .expect(StatusCodes.OK);
 
     expect(response.body.data.length).toBe(2);
@@ -79,7 +81,8 @@ describe('GET /api/posts?sender=<sender_id> - Get posts by sender', () => {
   });
 
   it('should return all posts when sender query parameter is not provided', async () => {
-    await Post.insertMany(mockPostMultiple);
+    const user = await User.create(mockUser);
+    await Post.insertMany(mockPostMultiple.map((p) => ({ ...p, userId: user._id })));
 
     const response = await request(app)
       .get('/api/posts')
@@ -88,14 +91,9 @@ describe('GET /api/posts?sender=<sender_id> - Get posts by sender', () => {
     expect(response.body.data.length).toBe(2);
   });
 
-  it('should handle sender query parameter with special characters', async () => {
-    await Post.insertMany([mockPostWithSpaces]);
-
-    const response = await request(app)
-      .get('/api/posts?sender=Author with Spaces')
-      .expect(StatusCodes.OK);
-
-    expect(response.body.data.length).toBe(1);
-    expect(response.body.data[0].author).toBe('Author with Spaces');
+  it('should return 400 for invalid userId query param', async () => {
+    await request(app)
+      .get('/api/posts?userId=not-an-objectid')
+      .expect(StatusCodes.BAD_REQUEST);
   });
 });

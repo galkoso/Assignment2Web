@@ -1,39 +1,42 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
 import { Post } from '../../posts/post.model';
+import { User } from '../../users/user.model';
 import {
     mockPost,
     mockCommentOriginal,
     mockCommentUpdated,
     mockCommentUpdatedWithSpaces,
     mockUpdateCommentWithoutContent,
-    mockInvalidCommentId
+    mockInvalidCommentId,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
 
 describe('PUT /api/comments/:id - Update a comment', () => {
     let app: Express;
-    const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
     beforeAll(async () => {
-        await mongoose.connect(testDbUri);
+        await connectTestDb();
         app = express();
         app.use(express.json());
         app.use('/api/comments', commentRouter);
     });
 
-    afterAll(async () => await mongoose.connection.close());
+    afterAll(async () => await disconnectTestDb());
 
-    beforeEach(async () => await Comment.deleteMany({}) && await Post.deleteMany({}));
+    beforeEach(async () => await clearTestDb());
 
     it('should update a comment successfully', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const comment = await Comment.create({
             ...mockCommentOriginal,
+            userId: user._id,
             postId: post._id
         });
 
@@ -51,10 +54,12 @@ describe('PUT /api/comments/:id - Update a comment', () => {
     });
 
     it('should fail when content is missing', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const comment = await Comment.create({
             ...mockCommentOriginal,
+            userId: user._id,
             postId: post._id
         });
 
@@ -72,10 +77,12 @@ describe('PUT /api/comments/:id - Update a comment', () => {
     });
 
     it('should trim content when updating', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const comment = await Comment.create({
             ...mockCommentOriginal,
+            userId: user._id,
             postId: post._id
         });
 

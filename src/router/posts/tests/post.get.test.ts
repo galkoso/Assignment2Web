@@ -1,6 +1,5 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import postRouter from '../post.router';
 import { Post } from '../post.model';
@@ -8,26 +7,28 @@ import {
     mockPostMultiple,
     mockPostOlder,
     mockPostNewer,
-    mockPost
+    mockPost,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { User } from '../../users/user.model';
 
 describe('GET /api/posts - Get all posts', () => {
   let app: Express;
-  const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
   beforeAll(async () => {
-    await mongoose.connect(testDbUri);
+    await connectTestDb();
     app = express();
     app.use(express.json());
     app.use('/api/posts', postRouter);
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    await disconnectTestDb();
   });
 
   beforeEach(async () => {
-    await Post.deleteMany({});
+    await clearTestDb();
   });
 
   it('should return empty array when no posts exist', async () => {
@@ -40,7 +41,8 @@ describe('GET /api/posts - Get all posts', () => {
   });
 
   it('should return all posts as JSON array', async () => {
-    await Post.insertMany(mockPostMultiple);
+    const user = await User.create(mockUser);
+    await Post.insertMany(mockPostMultiple.map((p) => ({ ...p, userId: user._id })));
 
     const response = await request(app)
       .get('/api/posts')
@@ -52,7 +54,8 @@ describe('GET /api/posts - Get all posts', () => {
   });
 
   it('should return posts sorted by publishDate descending (newest first)', async () => {
-    await Post.insertMany([mockPostOlder, mockPostNewer]);
+    const user = await User.create(mockUser);
+    await Post.insertMany([{ ...mockPostOlder, userId: user._id }, { ...mockPostNewer, userId: user._id }]);
 
     const response = await request(app)
       .get('/api/posts')
@@ -64,7 +67,8 @@ describe('GET /api/posts - Get all posts', () => {
   });
 
   it('should return posts with all required fields', async () => {
-    await Post.insertMany([mockPost]);
+    const user = await User.create(mockUser);
+    await Post.insertMany([{ ...mockPost, userId: user._id }]);
 
     const response = await request(app)
       .get('/api/posts')
@@ -74,7 +78,7 @@ describe('GET /api/posts - Get all posts', () => {
     const post = response.body.data[0];
     expect(post).toHaveProperty('title');
     expect(post).toHaveProperty('content');
-    expect(post).toHaveProperty('author');
+    expect(post).toHaveProperty('userId');
     expect(post).toHaveProperty('publishDate');
     expect(post).toHaveProperty('_id');
   });

@@ -1,40 +1,42 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
-import { Comment } from '../comment.model';
 import { Post } from '../../posts/post.model';
+import { User } from '../../users/user.model';
 import {
     mockPost,
     mockCommentData,
     mockCommentWithoutOwner,
     mockCommentWithoutPostId,
     mockCommentWithoutContent,
-    mockInvalidPostId
+    mockInvalidPostId,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
 
 describe('POST /api/comments - Create a new comment', () => {
     let app: Express;
-    const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
     beforeAll(async () => {
-        await mongoose.connect(testDbUri);
+        await connectTestDb();
         app = express();
         app.use(express.json());
         app.use('/api/comments', commentRouter);
     });
 
-    afterAll(async () => await mongoose.connection.close());
+    afterAll(async () => await disconnectTestDb());
 
-    beforeEach(async () => await Comment.deleteMany({}) && await Post.deleteMany({}));
+    beforeEach(async () => await clearTestDb());
 
     it('should create a new comment successfully', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const commentData = {
             ...mockCommentData,
-            postId: post._id.toString()
+            postId: post._id.toString(),
+            userId: user._id.toString()
         };
 
         const response = await request(app)
@@ -44,14 +46,15 @@ describe('POST /api/comments - Create a new comment', () => {
 
         expect(response.body).toHaveProperty('message', 'Comment created successfully');
         expect(response.body).toHaveProperty('data');
-        expect(response.body.data).toHaveProperty('owner', commentData.owner);
+        expect(response.body.data).toHaveProperty('userId');
         expect(response.body.data).toHaveProperty('content', commentData.content);
         expect(response.body.data).toHaveProperty('postId');
         expect(response.body.data).toHaveProperty('_id');
     });
 
-    it('should fail when owner is missing', async () => {
-        const post = await Post.create(mockPost);
+    it('should fail when userId is missing', async () => {
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const commentData = {
             ...mockCommentWithoutOwner,
@@ -74,11 +77,13 @@ describe('POST /api/comments - Create a new comment', () => {
     });
 
     it('should fail when content is missing', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const commentData = {
             ...mockCommentWithoutContent,
-            postId: post._id.toString()
+            postId: post._id.toString(),
+            userId: user._id.toString()
         };
 
         await request(app)
@@ -88,10 +93,8 @@ describe('POST /api/comments - Create a new comment', () => {
     });
 
     it('should fail when post does not exist', async () => {
-        const commentData = {
-            ...mockCommentData,
-            postId: mockInvalidPostId
-        };
+        const user = await User.create(mockUser);
+        const commentData = { ...mockCommentData, postId: mockInvalidPostId, userId: user._id.toString() };
 
         await request(app)
             .post('/api/comments')

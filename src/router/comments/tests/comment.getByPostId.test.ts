@@ -1,10 +1,10 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
 import { Post } from '../../posts/post.model';
+import { User } from '../../users/user.model';
 import {
     mockPost,
     mockPostMultiple,
@@ -13,31 +13,32 @@ import {
     mockCommentNewer,
     mockCommentForPost1,
     mockCommentForPost2,
-    mockInvalidPostId
+    mockInvalidPostId,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
 
 describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
     let app: Express;
-    const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
     beforeAll(async () => {
-        await mongoose.connect(testDbUri);
+        await connectTestDb();
         app = express();
         app.use(express.json());
         app.use('/api/comments', commentRouter);
     });
 
     afterAll(async () => {
-        await mongoose.connection.close();
+        await disconnectTestDb();
     });
 
     beforeEach(async () => {
-        await Comment.deleteMany({});
-        await Post.deleteMany({});
+        await clearTestDb();
     });
 
     it('should return empty array when no comments exist for post', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const response = await request(app)
             .get(`/api/comments/post/${post._id}`)
@@ -49,11 +50,13 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
     });
 
     it('should return all comments for a specific post', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         await Comment.insertMany(
             mockCommentMultiple.map(comment => ({
                 ...comment,
+                userId: user._id,
                 postId: post._id
             }))
         );
@@ -69,15 +72,18 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
     });
 
     it('should return comments sorted by createdAt descending (newest first)', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         await Comment.create({
             ...mockCommentOlder,
+            userId: user._id,
             postId: post._id
         });
 
         await Comment.create({
             ...mockCommentNewer,
+            userId: user._id,
             postId: post._id
         });
 
@@ -97,16 +103,19 @@ describe('GET /api/comments/post/:postId - Get all comments for a post', () => {
     });
 
     it('should only return comments for the specified post', async () => {
-        const post1 = await Post.create(mockPostMultiple[0]);
-        const post2 = await Post.create(mockPostMultiple[1]);
+        const user = await User.create(mockUser);
+        const post1 = await Post.create({ ...mockPostMultiple[0], userId: user._id });
+        const post2 = await Post.create({ ...mockPostMultiple[1], userId: user._id });
 
         await Comment.create({
             ...mockCommentForPost1,
+            userId: user._id,
             postId: post1._id
         });
 
         await Comment.create({
             ...mockCommentForPost2,
+            userId: user._id,
             postId: post2._id
         });
 

@@ -9,6 +9,44 @@ Content-Type: application/json
 GET {{baseUrl}}/health
 Content-Type: application/json
 
+### USERS
+
+### POST Create user (username + email required)
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john_doe@example.com",
+  "displayName": "John Doe",
+  "bio": "Hello world"
+}
+
+### GET Get all users
+GET {{baseUrl}}/api/users
+Content-Type: application/json
+
+### GET Get user by id
+GET {{baseUrl}}/api/users/USER_ID
+Content-Type: application/json
+
+### PUT Update user (username + email required)
+# Replace USER_ID with a real MongoDB ObjectId returned from "Create user"
+PUT {{baseUrl}}/api/users/USER_ID
+Content-Type: application/json
+
+{
+  "username": "john_doe_updated",
+  "email": "john_doe_updated@example.com",
+  "displayName": "John Doe (Updated)",
+  "bio": "Updated bio"
+}
+
+### DELETE Delete user
+# Replace USER_ID with a real MongoDB ObjectId returned from "Create user"
+DELETE {{baseUrl}}/api/users/USER_ID
+Content-Type: application/json
+
 ### POST Add a new post
 POST {{baseUrl}}/api/posts
 Content-Type: application/json
@@ -16,7 +54,7 @@ Content-Type: application/json
 {
   "title": "My First Post",
   "content": "This is the content of my first post.",
-  "author": "John Doe",
+  "userId": "John Doe",
   "publishDate": "2024-01-15T10:00:00.000Z"
 }
 
@@ -29,7 +67,7 @@ GET {{baseUrl}}/api/posts/507f1f77bcf86cd799439011
 Content-Type: application/json
 
 ### GET Get posts by sender
-GET {{baseUrl}}/api/posts?sender=John Doe
+GET {{baseUrl}}/api/posts?userId=John Doe
 Content-Type: application/json
 
 ### POST Create a new comment
@@ -37,7 +75,7 @@ POST {{baseUrl}}/api/comments
 Content-Type: application/json
 
 {
-  "owner": "Jane Smith",
+  "userId": "Jane Smith",
   "postId": "507f1f77bcf86cd799439011",
   "content": "This is a great post!"
 }

@@ -1,38 +1,41 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
 import { Post } from '../../posts/post.model';
+import { User } from '../../users/user.model';
 import {
     mockPost,
     mockCommentToDelete,
     mockComment1,
     mockComment2,
-    mockInvalidCommentId
+    mockInvalidCommentId,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
 
 describe('DELETE /api/comments/:id - Delete a comment', () => {
     let app: Express;
-    const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
     beforeAll(async () => {
-        await mongoose.connect(testDbUri);
+        await connectTestDb();
         app = express();
         app.use(express.json());
         app.use('/api/comments', commentRouter);
     });
 
-    afterAll(async () => await mongoose.connection.close());
+    afterAll(async () => await disconnectTestDb());
 
-    beforeEach(async () => await Comment.deleteMany({}) && await Post.deleteMany({}));
+    beforeEach(async () => await clearTestDb());
 
     it('should delete a comment successfully', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const comment = await Comment.create({
             ...mockCommentToDelete,
+            userId: user._id,
             postId: post._id
         });
 
@@ -53,15 +56,18 @@ describe('DELETE /api/comments/:id - Delete a comment', () => {
     });
 
     it('should only delete the specified comment', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const comment1 = await Comment.create({
             ...mockComment1,
+            userId: user._id,
             postId: post._id
         });
 
         const comment2 = await Comment.create({
             ...mockComment2,
+            userId: user._id,
             postId: post._id
         });
 

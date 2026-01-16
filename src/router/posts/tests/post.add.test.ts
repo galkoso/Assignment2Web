@@ -1,38 +1,39 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import postRouter from '../post.router';
-import { Post } from '../post.model';
 import {
     mockPostData,
     mockPostDataWithoutPublishDate,
     mockPostWithoutTitle,
     mockPostWithoutContent,
-    mockPostWithoutAuthor
+    mockPostWithoutUserId,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { User } from '../../users/user.model';
 
 describe('POST /api/posts - Add a new post', () => {
   let app: Express;
-  const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
   beforeAll(async () => {
-    await mongoose.connect(testDbUri);
+    await connectTestDb();
     app = express();
     app.use(express.json());
     app.use('/api/posts', postRouter);
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    await disconnectTestDb();
   });
 
   beforeEach(async () => {
-    await Post.deleteMany({});
+    await clearTestDb();
   });
 
   it('should create a new post successfully', async () => {
-    const postData = mockPostData;
+    const user = await User.create(mockUser);
+    const postData = { ...mockPostData, userId: user._id.toString() };
 
     const response = await request(app)
       .post('/api/posts')
@@ -43,40 +44,43 @@ describe('POST /api/posts - Add a new post', () => {
     expect(response.body).toHaveProperty('data');
     expect(response.body.data).toHaveProperty('title', postData.title);
     expect(response.body.data).toHaveProperty('content', postData.content);
-    expect(response.body.data).toHaveProperty('author', postData.author);
+    expect(response.body.data).toHaveProperty('userId');
     expect(response.body.data).toHaveProperty('publishDate');
     expect(response.body.data).toHaveProperty('_id');
   });
 
   it('should fail when title is missing', async () => {
-    const postData = mockPostWithoutTitle;
+    const user = await User.create(mockUser);
+    const postData = { ...mockPostWithoutTitle, userId: user._id.toString() };
 
     await request(app)
       .post('/api/posts')
       .send(postData)
-      .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   it('should fail when content is missing', async () => {
-    const postData = mockPostWithoutContent;
+    const user = await User.create(mockUser);
+    const postData = { ...mockPostWithoutContent, userId: user._id.toString() };
 
     await request(app)
       .post('/api/posts')
       .send(postData)
-      .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   it('should fail when author is missing', async () => {
-    const postData = mockPostWithoutAuthor;
+    const postData = mockPostWithoutUserId;
 
     await request(app)
       .post('/api/posts')
       .send(postData)
-      .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   it('should use default publishDate when not provided', async () => {
-    const postData = mockPostDataWithoutPublishDate;
+    const user = await User.create(mockUser);
+    const postData = { ...mockPostDataWithoutPublishDate, userId: user._id.toString() };
 
     const response = await request(app)
       .post('/api/posts')

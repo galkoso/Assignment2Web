@@ -1,9 +1,9 @@
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
 
 export interface IPost {
   title: string;
   content: string;
-  author: string;
+  userId: Types.ObjectId | string;
   publishDate: Date;
 }
 
@@ -19,10 +19,10 @@ export const postSchema = new Schema<IPost>(
       required: true,
       trim: true
     },
-    author: {
-      type: String,
-      required: true,
-      trim: true
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
     },
     publishDate: {
       type: Date,

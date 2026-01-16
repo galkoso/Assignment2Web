@@ -1,41 +1,43 @@
 import request from 'supertest';
 import express, { Express } from 'express';
-import mongoose from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import commentRouter from '../comment.router';
 import { Comment } from '../comment.model';
 import { Post } from '../../posts/post.model';
+import { User } from '../../users/user.model';
 import {
     mockPost,
     mockComment,
-    mockInvalidCommentId
+    mockInvalidCommentId,
+    mockUser
 } from '../../mocks';
+import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
 
 describe('GET /api/comments/:id - Get a comment by ID', () => {
     let app: Express;
-    const testDbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/assignment1web_test';
 
     beforeAll(async () => {
-        await mongoose.connect(testDbUri);
+        await connectTestDb();
         app = express();
         app.use(express.json());
         app.use('/api/comments', commentRouter);
     });
 
     afterAll(async () => {
-        await mongoose.connection.close();
+        await disconnectTestDb();
     });
 
     beforeEach(async () => {
-        await Comment.deleteMany({});
-        await Post.deleteMany({});
+        await clearTestDb();
     });
 
     it('should return a comment by ID', async () => {
-        const post = await Post.create(mockPost);
+        const user = await User.create(mockUser);
+        const post = await Post.create({ ...mockPost, userId: user._id });
 
         const comment = await Comment.create({
             ...mockComment,
+            userId: user._id,
             postId: post._id,
             content: 'Test comment content'
         });
@@ -46,7 +48,7 @@ describe('GET /api/comments/:id - Get a comment by ID', () => {
 
         expect(response.body).toHaveProperty('data');
         expect(response.body.data).toHaveProperty('_id', comment._id.toString());
-        expect(response.body.data).toHaveProperty('owner', 'Comment Owner');
+        expect(response.body.data).toHaveProperty('userId', user._id.toString());
         expect(response.body.data).toHaveProperty('content', 'Test comment content');
     });
 
