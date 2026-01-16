@@ -10,7 +10,7 @@ import {
     mockPostUpdatedTitleOnly,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 import { User } from '../../users/user.model';
 
 describe('PUT /api/posts/:postId - Update a post', () => {
@@ -39,6 +39,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     const response = await request(app)
       .put(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .send(updateData)
       .expect(StatusCodes.OK);
 
@@ -57,6 +58,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     const response = await request(app)
       .put(`/api/posts/${fakeId.toString()}`)
+      .set('Authorization', getAuthToken())
       .send(updateData)
       .expect(StatusCodes.NOT_FOUND);
 
@@ -71,6 +73,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     const response = await request(app)
       .put(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .send(updateData)
       .expect(StatusCodes.OK);
 
@@ -90,6 +93,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     const response = await request(app)
       .put('/api/posts/invalid-id')
+      .set('Authorization', getAuthToken())
       .send(updateData)
       .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 
@@ -104,6 +108,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     await request(app)
       .put(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .send(updateData)
       .expect(StatusCodes.BAD_REQUEST);
   });
@@ -118,6 +123,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     const response = await request(app)
       .put(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .send(updateData)
       .expect(StatusCodes.OK);
 
@@ -130,6 +136,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     const response = await request(app)
       .put(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .send({ ...mockPostUpdated, userId: 'invalid-user-id' })
       .expect(StatusCodes.BAD_REQUEST);
 
@@ -142,6 +149,7 @@ describe('PUT /api/posts/:postId - Update a post', () => {
 
     const response = await request(app)
       .put(`/api/posts/${createdPost._id.toString()}`)
+      .set('Authorization', getAuthToken())
       .send({ ...mockPostUpdated, userId: '507f1f77bcf86cd799439011' })
       .expect(StatusCodes.NOT_FOUND);
 

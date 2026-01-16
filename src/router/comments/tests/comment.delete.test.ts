@@ -14,7 +14,7 @@ import {
     mockInvalidCommentId,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 
 describe('DELETE /api/comments/:id - Delete a comment', () => {
     let app: Express;
@@ -46,6 +46,7 @@ describe('DELETE /api/comments/:id - Delete a comment', () => {
 
         const response = await request(app)
             .delete(`/api/comments/${comment._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.OK);
 
         expect(response.body).toHaveProperty('message', 'Comment deleted successfully');
@@ -57,6 +58,7 @@ describe('DELETE /api/comments/:id - Delete a comment', () => {
     it('should return 404 when comment does not exist', async () => {
         await request(app)
             .delete(`/api/comments/${mockInvalidCommentId}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.NOT_FOUND);
     });
 
@@ -78,6 +80,7 @@ describe('DELETE /api/comments/:id - Delete a comment', () => {
 
         await request(app)
             .delete(`/api/comments/${comment1._id}`)
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.OK);
 
         const deletedComment = await Comment.findById(comment1._id);
@@ -91,6 +94,7 @@ describe('DELETE /api/comments/:id - Delete a comment', () => {
     it('should return 500 for invalid ID format (catch path)', async () => {
         const response = await request(app)
             .delete('/api/comments/invalid-id')
+            .set('Authorization', getAuthToken())
             .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 
         expect(response.body).toHaveProperty('error', 'Failed to delete comment');

@@ -15,7 +15,7 @@ import {
     mockInvalidCommentId,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 
 describe('PUT /api/comments/:id - Update a comment', () => {
     let app: Express;
@@ -49,6 +49,7 @@ describe('PUT /api/comments/:id - Update a comment', () => {
 
         const response = await request(app)
             .put(`/api/comments/${comment._id}`)
+            .set('Authorization', getAuthToken())
             .send(updateData)
             .expect(StatusCodes.OK);
 
@@ -70,6 +71,7 @@ describe('PUT /api/comments/:id - Update a comment', () => {
 
         await request(app)
             .put(`/api/comments/${comment._id}`)
+            .set('Authorization', getAuthToken())
             .send(mockUpdateCommentWithoutContent)
             .expect(StatusCodes.BAD_REQUEST);
     });
@@ -77,6 +79,7 @@ describe('PUT /api/comments/:id - Update a comment', () => {
     it('should return 404 when comment does not exist', async () => {
         await request(app)
             .put(`/api/comments/${mockInvalidCommentId}`)
+            .set('Authorization', getAuthToken())
             .send(mockCommentUpdated)
             .expect(StatusCodes.NOT_FOUND);
     });
@@ -95,6 +98,7 @@ describe('PUT /api/comments/:id - Update a comment', () => {
 
         const response = await request(app)
             .put(`/api/comments/${comment._id}`)
+            .set('Authorization', getAuthToken())
             .send(updateData)
             .expect(StatusCodes.OK);
 
@@ -104,6 +108,7 @@ describe('PUT /api/comments/:id - Update a comment', () => {
     it('should return 500 for invalid ID format (catch path)', async () => {
         const response = await request(app)
             .put('/api/comments/invalid-id')
+            .set('Authorization', getAuthToken())
             .send(mockCommentUpdated)
             .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 

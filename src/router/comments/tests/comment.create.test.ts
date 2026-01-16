@@ -15,7 +15,7 @@ import {
     mockInvalidPostId,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 
 describe('POST /api/comments - Create a new comment', () => {
     let app: Express;
@@ -47,6 +47,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         const response = await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.CREATED);
 
@@ -69,6 +70,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.BAD_REQUEST);
     });
@@ -78,6 +80,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.BAD_REQUEST);
     });
@@ -94,6 +97,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.BAD_REQUEST);
     });
@@ -104,6 +108,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.NOT_FOUND);
     });
@@ -116,6 +121,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         const res = await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.BAD_REQUEST);
 
@@ -129,6 +135,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         const res = await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.BAD_REQUEST);
 
@@ -143,6 +150,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         const res = await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.NOT_FOUND);
 
@@ -159,6 +167,7 @@ describe('POST /api/comments - Create a new comment', () => {
 
         const res = await request(app)
             .post('/api/comments')
+            .set('Authorization', getAuthToken())
             .send(commentData)
             .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 

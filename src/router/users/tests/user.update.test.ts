@@ -2,7 +2,7 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import usersRouter from '../user.router';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 import { User } from '../user.model';
 import { mockUser } from '../../mocks';
 import { jest } from '@jest/globals';
@@ -33,6 +33,7 @@ describe('PUT /api/users/:userId - Update user', () => {
         const user = await User.create(mockUser);
         const res = await request(app)
             .put(`/api/users/${user._id.toString()}`)
+            .set('Authorization', getAuthToken())
             .send({ ...mockUser, displayName: 'Updated Name' })
             .expect(StatusCodes.OK);
         expect(res.body).toHaveProperty('message', 'User updated successfully');
@@ -43,6 +44,7 @@ describe('PUT /api/users/:userId - Update user', () => {
         const user = await User.create(mockUser);
         const res = await request(app)
             .put(`/api/users/${user._id.toString()}`)
+            .set('Authorization', getAuthToken())
             .send({ email: 'x@y.com' })
             .expect(StatusCodes.BAD_REQUEST);
         expect(res.body).toHaveProperty('error', 'username and email are required');
@@ -52,6 +54,7 @@ describe('PUT /api/users/:userId - Update user', () => {
         const user = await User.create(mockUser);
         const res = await request(app)
             .put(`/api/users/${user._id.toString()}`)
+            .set('Authorization', getAuthToken())
             .send({ username: 'abc' })
             .expect(StatusCodes.BAD_REQUEST);
         expect(res.body).toHaveProperty('error', 'username and email are required');
@@ -60,6 +63,7 @@ describe('PUT /api/users/:userId - Update user', () => {
     it('should return 404 when user does not exist', async () => {
         const res = await request(app)
             .put('/api/users/507f1f77bcf86cd799439011')
+            .set('Authorization', getAuthToken())
             .send({ username: 'abc', email: 'abc@example.com' })
             .expect(StatusCodes.NOT_FOUND);
 
@@ -70,6 +74,7 @@ describe('PUT /api/users/:userId - Update user', () => {
         const user = await User.create(mockUser);
         const res = await request(app)
             .put(`/api/users/${user._id.toString()}`)
+            .set('Authorization', getAuthToken())
             .send({ username: 'abc', email: 'abc@example.com' })
             .expect(StatusCodes.OK);
 
@@ -81,6 +86,7 @@ describe('PUT /api/users/:userId - Update user', () => {
     it('should return 400 when update throws (catch path)', async () => {
         const res = await request(app)
             .put('/api/users/invalid-id')
+            .set('Authorization', getAuthToken())
             .send({ username: 'u', email: 'e@e.com' })
             .expect(StatusCodes.BAD_REQUEST);
         expect(res.body).toHaveProperty('error', 'Failed to update user');

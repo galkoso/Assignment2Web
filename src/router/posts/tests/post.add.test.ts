@@ -12,7 +12,7 @@ import {
     mockPostWithoutUserId,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 import { User } from '../../users/user.model';
 
 describe('POST /api/posts - Add a new post', () => {
@@ -43,6 +43,7 @@ describe('POST /api/posts - Add a new post', () => {
 
     const response = await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.CREATED);
 
@@ -61,6 +62,7 @@ describe('POST /api/posts - Add a new post', () => {
 
     await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.BAD_REQUEST);
   });
@@ -71,6 +73,7 @@ describe('POST /api/posts - Add a new post', () => {
 
     await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.BAD_REQUEST);
   });
@@ -80,6 +83,7 @@ describe('POST /api/posts - Add a new post', () => {
 
     await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.BAD_REQUEST);
   });
@@ -90,6 +94,7 @@ describe('POST /api/posts - Add a new post', () => {
 
     const response = await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.CREATED);
 
@@ -102,6 +107,7 @@ describe('POST /api/posts - Add a new post', () => {
 
     const response = await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.BAD_REQUEST);
 
@@ -113,6 +119,7 @@ describe('POST /api/posts - Add a new post', () => {
 
     const response = await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.NOT_FOUND);
 
@@ -127,10 +134,10 @@ describe('POST /api/posts - Add a new post', () => {
 
     const response = await request(app)
       .post('/api/posts')
+      .set('Authorization', getAuthToken())
       .send(postData)
       .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 
     expect(response.body).toHaveProperty('error', 'Failed to create post');
   });
 });
-

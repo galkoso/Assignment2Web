@@ -51,7 +51,6 @@ export const startServer = async (deps: StartServerDeps = {}): Promise<void> => 
   }
 };
 
-// Prevent auto-start when running Jest.
 if (process.env.NODE_ENV !== 'test') {
   void startServer();
 }

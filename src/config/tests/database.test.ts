@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import mongoose from 'mongoose';
 import { connectDB, DEFAULT_MONGODB_URI } from '../database';
 
 describe('connectDB (src/config/database.ts)', () => {
@@ -41,6 +42,53 @@ describe('connectDB (src/config/database.ts)', () => {
 
     expect(errorLog).toHaveBeenCalledWith('MongoDB connection error:', expect.any(Error));
     expect(exit).toHaveBeenCalledWith(1);
+  });
+
+  it('uses default deps parameter when called without arguments (line 13)', async () => {
+    delete process.env.MONGODB_URI;
+    
+    // Mock mongoose.connect to avoid actual connection
+    const originalConnect = mongoose.connect;
+    const mockConnect = jest.fn<(uri: string) => Promise<unknown>>().mockResolvedValue(undefined);
+    (mongoose.connect as any) = mockConnect;
+
+    // Call connectDB() with NO arguments to test default parameter deps = {} on line 13
+    await connectDB();
+
+    expect(mockConnect).toHaveBeenCalledWith(DEFAULT_MONGODB_URI);
+
+    // Restore original
+    mongoose.connect = originalConnect;
+  });
+
+  it('uses default mongooseConnect when not provided in deps (line 16)', async () => {
+    delete process.env.MONGODB_URI;
+    const log = jest.fn();
+    
+    // Mock mongoose.connect to test the default value assignment
+    const originalConnect = mongoose.connect.bind(mongoose);
+    const mockConnect = jest.fn<(uri: string) => Promise<unknown>>().mockResolvedValue(undefined);
+    (mongoose.connect as any) = mockConnect;
+
+    // Call with empty deps to trigger default parameter, and without mongooseConnect to trigger line 16
+    await connectDB({ log });
+
+    expect(mockConnect).toHaveBeenCalledWith(DEFAULT_MONGODB_URI);
+    expect(log).toHaveBeenCalledWith('MongoDB Connected');
+
+    // Restore original
+    mongoose.connect = originalConnect;
+  });
+
+  it('uses custom uri when provided in deps', async () => {
+    const customUri = 'mongodb://custom:27017/db';
+    const mongooseConnect = jest.fn<(uri: string) => Promise<unknown>>().mockResolvedValue(undefined);
+    const log = jest.fn();
+
+    await connectDB({ uri: customUri, mongooseConnect, log });
+
+    expect(mongooseConnect).toHaveBeenCalledWith(customUri);
+    expect(log).toHaveBeenCalledWith('MongoDB Connected');
   });
 });
 
