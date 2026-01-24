@@ -63,8 +63,6 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       email: String(email).trim(),
     };
 
-    // Only update optional fields if they are provided in the request body.
-    // This prevents overwriting existing values when clients omit optional fields.
     if (hasDisplayName) {
       const displayName = body.displayName;
       update.displayName = displayName ? String(displayName).trim() : undefined;
@@ -86,7 +84,6 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // If optional fields were omitted by the client, omit them in the response as well.
     const data = user.toObject() as unknown as Record<string, unknown>;
     if (!hasDisplayName) delete data.displayName;
     if (!hasBio) delete data.bio;

@@ -91,7 +91,6 @@ describe('User Handler - Edge Cases and Error Paths', () => {
 
     describe('updateUser - Optional Fields Edge Cases', () => {
         it('should handle displayName when provided as empty string (becomes undefined in update)', async () => {
-            // Create user without displayName first
             const user = await User.create({ username: 'testuser', email: 'test@example.com' });
             const res = await request(app)
                 .put(`/api/users/${user._id.toString()}`)
@@ -102,11 +101,6 @@ describe('User Handler - Edge Cases and Error Paths', () => {
                     displayName: ''
                 })
                 .expect(StatusCodes.OK);
-
-            // Empty string is falsy, so it becomes undefined
-            // Since hasDisplayName is true but value is undefined, it should be undefined in response
-            // But the response logic doesn't delete it if hasDisplayName is true
-            // So we just verify the update was processed
             expect(res.body).toHaveProperty('message', 'User updated successfully');
         });
 
@@ -121,8 +115,6 @@ describe('User Handler - Edge Cases and Error Paths', () => {
                     displayName: null
                 })
                 .expect(StatusCodes.OK);
-
-            // When displayName is null, it should be trimmed to undefined
             expect(res.body).toHaveProperty('message', 'User updated successfully');
         });
 
@@ -137,8 +129,6 @@ describe('User Handler - Edge Cases and Error Paths', () => {
                     bio: ''
                 })
                 .expect(StatusCodes.OK);
-
-            // Empty string is falsy, so it becomes undefined
             expect(res.body).toHaveProperty('message', 'User updated successfully');
         });
 
@@ -153,8 +143,6 @@ describe('User Handler - Edge Cases and Error Paths', () => {
                     bio: null
                 })
                 .expect(StatusCodes.OK);
-
-            // When bio is null, it should be trimmed to undefined
             expect(res.body).toHaveProperty('message', 'User updated successfully');
         });
 
