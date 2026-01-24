@@ -70,7 +70,7 @@ describe('PUT /api/users/:userId - Update user', () => {
         expect(res.body).toHaveProperty('error', 'User not found');
     });
 
-    it('should allow optional fields to be omitted', async () => {
+    it('should allow optional fields to be omitted (keeps existing values)', async () => {
         const user = await User.create(mockUser);
         const res = await request(app)
             .put(`/api/users/${user._id.toString()}`)
@@ -79,8 +79,8 @@ describe('PUT /api/users/:userId - Update user', () => {
             .expect(StatusCodes.OK);
 
         expect(res.body).toHaveProperty('message', 'User updated successfully');
-        expect(res.body.data.displayName).toBeUndefined();
-        expect(res.body.data.bio).toBeUndefined();
+        expect(res.body.data.displayName).toBe(mockUser.displayName);
+        expect(res.body.data.bio).toBe(mockUser.bio);
     });
 
     it('should return 400 when update throws (catch path)', async () => {
