@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { signAccessToken, verifyRefreshToken } from './auth.utils';
 import { JwtPayload } from './auth.types';
 
-export const refreshAccessToken = (): RequestHandler => async (request: Request, response: Response) => {
+export const refreshAccessToken = (): RequestHandler => (request: Request, response: Response) => {
     const refreshToken = request.cookies?.refreshToken;
 
     if (!refreshToken) {
