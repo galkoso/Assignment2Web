@@ -5,7 +5,9 @@ import { signAccessToken } from '../router/auth/auth.utils';
 let mongo: MongoMemoryServer | null = null;
 
 export async function connectTestDb(): Promise<void> {
-  mongo = await MongoMemoryServer.create();
+  mongo = await MongoMemoryServer.create({
+    instance: { launchTimeout: 60_000 },
+  });
   const uri = mongo.getUri();
   await mongoose.connect(uri);
 }

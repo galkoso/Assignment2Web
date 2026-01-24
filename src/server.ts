@@ -1,14 +1,16 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { connectDB } from './config/database';
+import { connectDB, disconnectDB } from './config/database';
 import postRouter from './router/posts/post.router';
 import commentsRouter from './router/comments/comment.router';
 import usersRouter from './router/users/user.router';
 import { createAuthRouter } from './router/auth/auth.router';
+import type { Server } from 'node:http';
 
 export const app = express();
 const PORT: number = Number(process.env.PORT) || 3000;
+let server: Server | undefined;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -22,34 +24,37 @@ app.get('/health', (_req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({ status: 'ok' });
 });
 
-type StartServerDeps = {
-  connect?: () => Promise<void>;
-  listen?: (port: number, cb: () => void) => unknown;
-  port?: number;
-  log?: (...args: unknown[]) => void;
-  errorLog?: (...args: unknown[]) => void;
-  exit?: (code: number) => never;
+export const startServer = async (): Promise<Server> => {
+  await connectDB();
+  server = app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+  return server;
 };
 
-export const startServer = async (deps: StartServerDeps = {}): Promise<void> => {
-  const {
-    connect = connectDB,
-    listen = app.listen.bind(app),
-    port = PORT,
-    log = console.log,
-    errorLog = console.error,
-    exit = process.exit,
-  } = deps;
+export const stopServer = async (): Promise<void> => {
+  if (!server) return;
+  await new Promise<void>((resolve, reject) => {
+    server!.close((err) => (err ? reject(err) : resolve()));
+  });
+  server = undefined;
+  await disconnectDB();
+};
 
+const shutdown = async (code: number) => {
   try {
-    await connect();
-    listen(port, () => {
-      log(`Server running on http://localhost:${port}`);
-    });
-  } catch (error) {
-    errorLog('Failed to start server:', error);
-    exit(1);
+    await stopServer();
+    process.exit(code);
+  } catch {
+    process.exit(1);
   }
 };
 
-startServer();
+process.on('SIGINT', () => void shutdown(0));
+process.on('SIGTERM', () => void shutdown(0));
+
+startServer().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});
+
