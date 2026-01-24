@@ -20,38 +20,19 @@ app.get('/health', (_req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({ status: 'ok' });
 });
 
-type StartServerDeps = {
-  connect?: () => Promise<void>;
-  listen?: (port: number, cb: () => void) => unknown;
-  port?: number;
-  log?: (...args: unknown[]) => void;
-  errorLog?: (...args: unknown[]) => void;
-  exit?: (code: number) => never;
-};
-
-export const startServer = async (deps: StartServerDeps = {}): Promise<void> => {
-  const {
-    connect = connectDB,
-    listen = app.listen.bind(app),
-    port = PORT,
-    log = console.log,
-    errorLog = console.error,
-    exit = process.exit,
-  } = deps;
-
+export const startServer = async (): Promise<void> => {
   try {
-    await connect();
-    listen(port, () => {
-      log(`Server running on http://localhost:${port}`);
-      log(`Node.js version: ${process.version}`);
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Node.js version: ${process.version}`);
     });
   } catch (error) {
-    errorLog('Failed to start server:', error);
-    exit(1);
+    console.error('Failed to start server:', error);
+    process.exit(1);
   }
 };
 
-// Prevent auto-start when running Jest.
 if (process.env.NODE_ENV !== 'test') {
   void startServer();
 }
