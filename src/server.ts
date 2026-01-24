@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
 import { StatusCodes } from 'http-status-codes';
 import { connectDB, disconnectDB } from './config/database';
 import postRouter from './router/posts/post.router';
@@ -13,6 +14,7 @@ const PORT: number = Number(process.env.PORT) || 3000;
 let server: Server | undefined;
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/posts', postRouter);

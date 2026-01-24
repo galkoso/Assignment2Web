@@ -38,44 +38,44 @@ describe('Auth Routes - GET /auth/refresh - Refresh access token using refresh t
     expect(typeof jsonCall.accessToken).toBe('string');
   });
 
-  it('should throw UNAUTHORIZED error when refresh token is missing', async () => {
+  it('should throw UNAUTHORIZED error when refresh token is missing', () => {
     mockRequest.cookies = {};
 
     const handler = refreshAccessToken();
 
-    await expect(
+    expect(() =>
       handler(mockRequest as Request, mockResponse as Response, mockNext)
-    ).rejects.toEqual({
+    ).toThrow(expect.objectContaining({
       statusCode: StatusCodes.UNAUTHORIZED,
       message: 'Missing refresh token',
-    });
+    }));
   });
 
-  it('should throw UNAUTHORIZED error when refresh token is invalid', async () => {
+  it('should throw UNAUTHORIZED error when refresh token is invalid', () => {
     const refreshToken = 'invalid-refresh-token';
     mockRequest.cookies = { refreshToken };
 
     const handler = refreshAccessToken();
 
-    await expect(
+    expect(() =>
       handler(mockRequest as Request, mockResponse as Response, mockNext)
-    ).rejects.toEqual({
+    ).toThrow(expect.objectContaining({
       statusCode: StatusCodes.UNAUTHORIZED,
       message: 'Invalid or expired refresh token',
-    });
+    }));
   });
 
-  it('should throw UNAUTHORIZED error when refresh token is expired', async () => {
+  it('should throw UNAUTHORIZED error when refresh token is expired', () => {
     const refreshToken = 'expired-refresh-token';
     mockRequest.cookies = { refreshToken };
 
     const handler = refreshAccessToken();
 
-    await expect(
+    expect(() =>
       handler(mockRequest as Request, mockResponse as Response, mockNext)
-    ).rejects.toEqual({
+    ).toThrow(expect.objectContaining({
       statusCode: StatusCodes.UNAUTHORIZED,
       message: 'Invalid or expired refresh token',
-    });
+    }));
   });
 });
