@@ -12,16 +12,16 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    await User.create({
+    const user = await User.create({
       username: String(username).trim(),
       email: String(email).trim(),
       displayName: displayName ? String(displayName).trim() : undefined,
       bio: bio ? String(bio).trim() : undefined,
     });
 
-    res.status(StatusCodes.CREATED).json({ message: 'User created successfully', token: signAccessToken({username}) });
+    res.status(StatusCodes.CREATED).json({ message: 'User created successfully', data: user, token: signAccessToken({ username }) });
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ error });
+    res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to create user' });
   }
 };
 
