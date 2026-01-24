@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { User } from './user.model';
+import { signAccessToken } from '../auth/auth.utils';
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -11,16 +12,16 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const user = await User.create({
+    await User.create({
       username: String(username).trim(),
       email: String(email).trim(),
       displayName: displayName ? String(displayName).trim() : undefined,
       bio: bio ? String(bio).trim() : undefined,
     });
 
-    res.status(StatusCodes.CREATED).json({ message: 'User created successfully', data: user });
-  } catch (_error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to create user' });
+    res.status(StatusCodes.CREATED).json({ message: 'User created successfully', token: signAccessToken({username}) });
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({ error });
   }
 };
 
