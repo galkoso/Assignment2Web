@@ -1,9 +1,8 @@
 ### Variables
 @baseUrl = http://localhost:3000
+@username = john_doe
 
-### GET Welcome endpoint
-GET {{baseUrl}}/
-Content-Type: application/json
+@accessToken = {{accessToken}}
 
 ### GET Health check endpoint
 GET {{baseUrl}}/health
@@ -14,6 +13,7 @@ Content-Type: application/json
 ### POST Create user (username + email required)
 POST {{baseUrl}}/api/users
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "username": "john_doe",
@@ -25,15 +25,18 @@ Content-Type: application/json
 ### GET Get all users
 GET {{baseUrl}}/api/users
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### GET Get user by id
 GET {{baseUrl}}/api/users/USER_ID
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### PUT Update user (username + email required)
 # Replace USER_ID with a real MongoDB ObjectId returned from "Create user"
 PUT {{baseUrl}}/api/users/USER_ID
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "username": "john_doe_updated",
@@ -46,10 +49,12 @@ Content-Type: application/json
 # Replace USER_ID with a real MongoDB ObjectId returned from "Create user"
 DELETE {{baseUrl}}/api/users/USER_ID
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### POST Add a new post
 POST {{baseUrl}}/api/posts
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "title": "My First Post",
@@ -61,18 +66,22 @@ Content-Type: application/json
 ### GET Get all posts
 GET {{baseUrl}}/api/posts
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### GET Get a post by ID
 GET {{baseUrl}}/api/posts/507f1f77bcf86cd799439011
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### GET Get posts by sender
 GET {{baseUrl}}/api/posts?userId=John Doe
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### POST Create a new comment
 POST {{baseUrl}}/api/comments
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "userId": "Jane Smith",
@@ -83,14 +92,17 @@ Content-Type: application/json
 ### GET Get a comment by ID
 GET {{baseUrl}}/api/comments/507f1f77bcf86cd799439011
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### GET Get all comments for a specific post
 GET {{baseUrl}}/api/comments/post/507f1f77bcf86cd799439011
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 ### PUT Update a comment
 PUT {{baseUrl}}/api/comments/507f1f77bcf86cd799439011
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "content": "Updated comment content"
@@ -99,3 +111,4 @@ Content-Type: application/json
 ### DELETE Delete a comment
 DELETE {{baseUrl}}/api/comments/507f1f77bcf86cd799439011
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
