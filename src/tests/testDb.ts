@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { signAccessToken } from '../router/auth/auth.utils';
 
 let mongo: MongoMemoryServer | null = null;
 
@@ -24,3 +25,7 @@ export async function clearTestDb(): Promise<void> {
   await Promise.all(Object.values(collections).map((c) => c.deleteMany({})));
 }
 
+export function getAuthToken(username: string = 'testuser'): string {
+  const token = signAccessToken({ username });
+  return `Bearer ${token}`;
+}

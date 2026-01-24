@@ -2,7 +2,7 @@ import request from 'supertest';
 import express, { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import usersRouter from '../user.router';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 
 describe('GET /api/users/:userId - Get user by id', () => {
     let app: Express;
@@ -23,12 +23,12 @@ describe('GET /api/users/:userId - Get user by id', () => {
     });
 
     it('should return 404 for missing user', async () => {
-        const res = await request(app).get('/api/users/507f1f77bcf86cd799439011').expect(StatusCodes.NOT_FOUND);
+        const res = await request(app).get('/api/users/507f1f77bcf86cd799439011').set('Authorization', getAuthToken()).expect(StatusCodes.NOT_FOUND);
         expect(res.body).toHaveProperty('error', 'User not found');
     });
 
     it('should return 400 for invalid userId format', async () => {
-        const res = await request(app).get('/api/users/invalid-id').expect(StatusCodes.BAD_REQUEST);
+        const res = await request(app).get('/api/users/invalid-id').set('Authorization', getAuthToken()).expect(StatusCodes.BAD_REQUEST);
         expect(res.body).toHaveProperty('error', 'Invalid userId');
     });
 });

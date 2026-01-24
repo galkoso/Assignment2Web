@@ -11,7 +11,7 @@ import {
     mockPost,
     mockUser
 } from '../../mocks';
-import { connectTestDb, disconnectTestDb, clearTestDb } from '../../../tests/testDb';
+import { connectTestDb, disconnectTestDb, clearTestDb, getAuthToken } from '../../../tests/testDb';
 import { User } from '../../users/user.model';
 
 describe('GET /api/posts - Get all posts', () => {
@@ -39,6 +39,7 @@ describe('GET /api/posts - Get all posts', () => {
   it('should return empty array when no posts exist', async () => {
     const response = await request(app)
       .get('/api/posts')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body).toHaveProperty('data');
@@ -51,6 +52,7 @@ describe('GET /api/posts - Get all posts', () => {
 
     const response = await request(app)
       .get('/api/posts')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body).toHaveProperty('data');
@@ -64,6 +66,7 @@ describe('GET /api/posts - Get all posts', () => {
 
     const response = await request(app)
       .get('/api/posts')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body.data.length).toBe(2);
@@ -77,6 +80,7 @@ describe('GET /api/posts - Get all posts', () => {
 
     const response = await request(app)
       .get('/api/posts')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.OK);
 
     expect(response.body.data.length).toBeGreaterThanOrEqual(1);
@@ -91,6 +95,7 @@ describe('GET /api/posts - Get all posts', () => {
   it('should return 400 when userId query param is invalid', async () => {
     const response = await request(app)
       .get('/api/posts?userId=invalid-id')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.BAD_REQUEST);
 
     expect(response.body).toHaveProperty('error', 'Invalid userId');
@@ -104,6 +109,7 @@ describe('GET /api/posts - Get all posts', () => {
 
     const response = await request(app)
       .get('/api/posts')
+      .set('Authorization', getAuthToken())
       .expect(StatusCodes.INTERNAL_SERVER_ERROR);
 
     expect(response.body).toHaveProperty('error', 'Failed to fetch posts');

@@ -2,7 +2,6 @@ export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
-  // MongoMemoryServer can be slow to boot on Windows (download/startup).
   testTimeout: 30000,
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
@@ -15,7 +14,7 @@ export default {
       },
     ],
   },
-  testMatch: ['**/tests/**/*.test.ts'],
+  testMatch: ['**/tests/**/*.test.ts', '**/__tests__/**/*.test.ts'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',

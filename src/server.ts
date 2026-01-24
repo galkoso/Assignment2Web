@@ -5,6 +5,7 @@ import { connectDB, disconnectDB } from './config/database';
 import postRouter from './router/posts/post.router';
 import commentsRouter from './router/comments/comment.router';
 import usersRouter from './router/users/user.router';
+import { createAuthRouter } from './router/auth/auth.router';
 import type { Server } from 'node:http';
 
 export const app = express();
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/posts', postRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/auth', createAuthRouter());
 
 app.get('/health', (_req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({ status: 'ok' });
