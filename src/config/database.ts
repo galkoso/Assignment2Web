@@ -8,8 +8,12 @@ export const connectDB = async (uri: string = process.env.MONGODB_URI || DEFAULT
     console.log(`MongoDB Connected`);
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
+    throw error;
   }
+};
+
+export const disconnectDB = async (): Promise<void> => {
+  await mongoose.disconnect();
 };
 
 export default connectDB;
