@@ -50,29 +50,18 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
   try {
     const { userId } = req.params;
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const { username, email } = body;
-    const hasDisplayName = Object.prototype.hasOwnProperty.call(body, 'displayName');
-    const hasBio = Object.prototype.hasOwnProperty.call(body, 'bio');
+    const { username, email, displayName, bio } = body;
 
     if (!username || !email) {
       res.status(StatusCodes.BAD_REQUEST).json({ error: 'username and email are required' });
       return;
     }
-
     const update: Record<string, unknown> = {
       username: String(username).trim(),
       email: String(email).trim(),
+      displayName: displayName ? String(displayName).trim() : undefined,
+      bio: bio ? String(bio).trim() : undefined,
     };
-
-    if (hasDisplayName) {
-      const displayName = body.displayName;
-      update.displayName = displayName ? String(displayName).trim() : undefined;
-    }
-
-    if (hasBio) {
-      const bio = body.bio;
-      update.bio = bio ? String(bio).trim() : undefined;
-    }
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -85,11 +74,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const data = user.toObject() as unknown as Record<string, unknown>;
-    if (!hasDisplayName) delete data.displayName;
-    if (!hasBio) delete data.bio;
-
-    res.status(StatusCodes.OK).json({ message: 'User updated successfully', data });
+    res.status(StatusCodes.OK).json({ message: 'User updated successfully', data: user });
   } catch (_error) {
     res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to update user' });
   }
