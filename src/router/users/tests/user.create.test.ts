@@ -41,23 +41,31 @@ describe('POST /api/users - Create user', () => {
     it('should return 400 when username is missing', async () => {
         const res = await request(app)
             .post('/api/users')
-            .send({ email: 'a@b.com' })
+            .send({ email: 'a@b.com', password: 'password123' })
             .expect(StatusCodes.BAD_REQUEST);
-        expect(res.body).toHaveProperty('error', 'username and email are required');
+        expect(res.body).toHaveProperty('error', 'username, email and password are required');
     });
 
     it('should return 400 when email is missing', async () => {
         const res = await request(app)
             .post('/api/users')
-            .send({ username: 'abc' })
+            .send({ username: 'abc', password: 'password123' })
             .expect(StatusCodes.BAD_REQUEST);
-        expect(res.body).toHaveProperty('error', 'username and email are required');
+        expect(res.body).toHaveProperty('error', 'username, email and password are required');
+    });
+
+    it('should return 400 when password is missing', async () => {
+        const res = await request(app)
+            .post('/api/users')
+            .send({ username: 'abc', email: 'test@example.com' })
+            .expect(StatusCodes.BAD_REQUEST);
+        expect(res.body).toHaveProperty('error', 'username, email and password are required');
     });
 
     it('should allow optional fields to be omitted', async () => {
         const res = await request(app)
             .post('/api/users')
-            .send({ username: 'abc', email: 'abc@example.com' })
+            .send({ username: 'abc', email: 'abc@example.com', password: 'password123' })
             .expect(StatusCodes.CREATED);
 
         expect(res.body.data.displayName).toBeUndefined();
