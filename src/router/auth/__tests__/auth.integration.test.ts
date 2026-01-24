@@ -1,5 +1,6 @@
 import request from 'supertest';
 import express, { Express } from 'express';
+import cookieParser from 'cookie-parser';
 import { StatusCodes } from 'http-status-codes';
 import { createAuthRouter } from '../auth.router';
 import { signRefreshToken } from '../auth.utils';
@@ -12,36 +13,24 @@ describe('Auth Router Integration Tests - GET /auth/refresh', () => {
     await connectTestDb();
     app = express();
     app.use(express.json());
-    app.use((req, _res, next) => {
-      req.cookies = {};
-      const cookieHeader = req.headers.cookie;
-      if (cookieHeader) {
-        cookieHeader.split(';').forEach(cookie => {
-          const [name, value] = cookie.trim().split('=');
-          if (name && value) {
-            req.cookies[name] = decodeURIComponent(value);
-          }
-        });
-      }
-      next();
-    });
-    
+    app.use(cookieParser());
+
     const authRouter = createAuthRouter();
     const wrapAsync = (fn: express.RequestHandler) => {
       return (req: express.Request, res: express.Response, next: express.NextFunction) => {
         Promise.resolve(fn(req, res, next)).catch(next);
       };
     };
-    
+
     authRouter.stack.forEach((layer: any) => {
       if (layer.route && layer.route.path === '/refresh') {
         const originalHandler = layer.route.stack[0].handle;
         layer.route.stack[0].handle = wrapAsync(originalHandler);
       }
     });
-    
+
     app.use('/auth', authRouter);
-    
+
     app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
       const message = err.message || 'Internal server error';
