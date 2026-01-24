@@ -1,10 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:3000
 
-### GET Welcome endpoint
-GET {{baseUrl}}/
-Content-Type: application/json
-
 ### GET Health check endpoint
 GET {{baseUrl}}/health
 Content-Type: application/json
@@ -12,90 +8,105 @@ Content-Type: application/json
 ### USERS
 
 ### POST Create user (username + email required)
+# @name createUser
 POST {{baseUrl}}/api/users
 Content-Type: application/json
 
 {
-  "username": "john_doe",
-  "email": "john_doe@example.com",
+  "username": "user_{{$timestamp}}",
+  "email": "user_{{$timestamp}}@example.com",
   "displayName": "John Doe",
   "bio": "Hello world"
 }
 
 ### GET Get all users
+# @name getAllUsers
 GET {{baseUrl}}/api/users
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### GET Get user by id
-GET {{baseUrl}}/api/users/USER_ID
+GET {{baseUrl}}/api/users/{{getAllUsers.response.body.data[0]._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### PUT Update user (username + email required)
-# Replace USER_ID with a real MongoDB ObjectId returned from "Create user"
-PUT {{baseUrl}}/api/users/USER_ID
+PUT {{baseUrl}}/api/users/{{getAllUsers.response.body.data[0]._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 {
-  "username": "john_doe_updated",
-  "email": "john_doe_updated@example.com",
+  "username": "user_updated_{{$timestamp}}",
+  "email": "user_updated_{{$timestamp}}@example.com",
   "displayName": "John Doe (Updated)",
   "bio": "Updated bio"
 }
 
 ### DELETE Delete user
-# Replace USER_ID with a real MongoDB ObjectId returned from "Create user"
-DELETE {{baseUrl}}/api/users/USER_ID
+DELETE {{baseUrl}}/api/users/{{getAllUsers.response.body.data[0]._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### POST Add a new post
+# @name createPost
 POST {{baseUrl}}/api/posts
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 {
   "title": "My First Post",
   "content": "This is the content of my first post.",
-  "userId": "John Doe",
+  "userId": "{{getAllUsers.response.body.data[0]._id}}",
   "publishDate": "2024-01-15T10:00:00.000Z"
 }
 
 ### GET Get all posts
 GET {{baseUrl}}/api/posts
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### GET Get a post by ID
-GET {{baseUrl}}/api/posts/507f1f77bcf86cd799439011
+GET {{baseUrl}}/api/posts/{{createPost.response.body.data._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### GET Get posts by sender
-GET {{baseUrl}}/api/posts?userId=John Doe
+GET {{baseUrl}}/api/posts?userId={{getAllUsers.response.body.data[0]._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### POST Create a new comment
+# @name createComment
 POST {{baseUrl}}/api/comments
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 {
-  "userId": "Jane Smith",
-  "postId": "507f1f77bcf86cd799439011",
+  "userId": "{{getAllUsers.response.body.data[0]._id}}",
+  "postId": "{{createPost.response.body.data._id}}",
   "content": "This is a great post!"
 }
 
 ### GET Get a comment by ID
-GET {{baseUrl}}/api/comments/507f1f77bcf86cd799439011
+GET {{baseUrl}}/api/comments/{{createComment.response.body.data._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### GET Get all comments for a specific post
-GET {{baseUrl}}/api/comments/post/507f1f77bcf86cd799439011
+GET {{baseUrl}}/api/comments/post/{{createPost.response.body.data._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 ### PUT Update a comment
-PUT {{baseUrl}}/api/comments/507f1f77bcf86cd799439011
+PUT {{baseUrl}}/api/comments/{{createComment.response.body.data._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
 
 {
   "content": "Updated comment content"
 }
 
 ### DELETE Delete a comment
-DELETE {{baseUrl}}/api/comments/507f1f77bcf86cd799439011
+DELETE {{baseUrl}}/api/comments/{{createComment.response.body.data._id}}
 Content-Type: application/json
+Authorization: Bearer {{createUser.response.body.token}}
