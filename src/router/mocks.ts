@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 export const mockUser = {
     username: 'testuser',
     email: 'testuser@example.com',
+    password: 'password123',
     displayName: 'Test User',
     bio: 'Hello world'
 };
