@@ -28,7 +28,7 @@ router.post('/', createUser);
  *     tags:
  *       - Users
  */
-router.post('/login', logInUser);
+router.post('/login', authMiddleware(), logInUser);
 /**
  * @openapi
  * /api/users:
