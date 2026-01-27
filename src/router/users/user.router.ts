@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../auth/auth.middleware';
-import { createUser, deleteUser, getAllUsers, getUserById, updateUser } from './user.handler';
+import { createUser, deleteUser, getAllUsers, getUserById, logInUser, updateUser } from './user.handler';
 
 const router = Router();
 
@@ -19,6 +19,16 @@ const router = Router();
  *         description: Bad request
  */
 router.post('/', createUser);
+/**
+ * @openapi
+ * /api/users/login:
+ *   post:
+ *     summary: Login a user
+ *     description: Logs in a user and returns a JWT token.
+ *     tags:
+ *       - Users
+ */
+router.post('/login', logInUser);
 /**
  * @openapi
  * /api/users:

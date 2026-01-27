@@ -1,27 +1,57 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import bcrypt from 'bcrypt';
 import { User } from './user.model';
-import { signAccessToken } from '../auth/auth.utils';
+import { signAccessToken, signRefreshToken } from '../auth/auth.utils';
+import { logInIfUser } from './user.service';
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { username, email, displayName, bio } = req.body ?? {};
+    const { username, email, displayName, bio, password } = req.body ?? {};
 
-    if (!username || !email) {
-      res.status(StatusCodes.BAD_REQUEST).json({ error: 'username and email are required' });
+    if (!username || !email || !password) {
+      res.status(StatusCodes.BAD_REQUEST).json({ error: 'username, email and password are required' });
       return;
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       username: String(username).trim(),
       email: String(email).trim(),
+      password: hashedPassword,
       displayName: displayName ? String(displayName).trim() : undefined,
       bio: bio ? String(bio).trim() : undefined,
     });
 
-    res.status(StatusCodes.CREATED).json({ message: 'User created successfully', data: user, token: signAccessToken({ username }) });
+    const accessToken = signAccessToken({ username });
+    const refreshToken = signRefreshToken({ username });
+
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
+    res.status(StatusCodes.CREATED).json({ message: 'User created successfully', data: user, token: accessToken });
   } catch (error) {
     res.status(StatusCodes.BAD_REQUEST).json({ error: 'Failed to create user' });
+  }
+};
+
+export const logInUser = async (request: Request, response: Response): Promise<void> => {
+  try {
+    const { username, password } = request.body;
+
+    const userId = await logInIfUser(username, password);
+
+    if (!userId) {
+      response.status(StatusCodes.UNAUTHORIZED).json({ error: 'Username or password is incorrect' });
+      return;
+    }
+
+    const accessToken = signAccessToken({ username });
+    const refreshToken = signRefreshToken({ username });
+
+    response.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'strict' });
+    response.status(StatusCodes.OK).send(accessToken);
+  } catch (error) {
+    response.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Login failed' });
   }
 };
 
